@@ -8,13 +8,80 @@
 const JARVIS_API =
   "https://jarvis-ai-backend.juliocls20101.workers.dev";
 
-async function perguntarIA(mensagem) {
-  const controller = new AbortController();
-  const timeout = setTimeout(
-    () => controller.abort(), 25000
-  );
 
+
+  
+async function processCommand(command) {
+  const cleaned = command.trim();
+  if (!cleaned) return;
+
+  addMessage("user", cleaned);
+  statusText.textContent = "JARVIS pensando...";
+
+  const response = getResponse(cleaned);
+
+  const respostaAntiga =
+    response.message.startsWith(
+      "Ainda não tenho uma resposta inteligente"
+    );
+
+  // Comandos locais
+  if (!respostaAntiga) {
+    addMessage("jarvis", response.message);
+
+    if (response.stopSpeech) {
+      window.speechSynthesis?.cancel();
+    } else {
+      speak(response.message);
+    }
+
+    if (response.url) {
+      const link = document.createElement("a");
+      link.href = response.url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "Abrir site";
+      chat.appendChild(link);
+    }
+
+    statusText.textContent = "JARVIS online.";
+    return;
+  }
+
+  // Perguntas enviadas ao Cloudflare
   try {
+    const resposta = await perguntarIA(cleaned);
+
+    if (typeof memoriaJarvis !== "undefined") {
+      memoriaJarvis.push(
+        { role: "user", content: cleaned },
+        { role: "assistant", content: resposta }
+      );
+
+      if (memoriaJarvis.length > 10) {
+        memoriaJarvis.splice(
+          0,
+          memoriaJarvis.length - 10
+        );
+      }
+    }
+
+    addMessage("jarvis", resposta);
+    speak(resposta);
+
+  } catch (error) {
+    console.error("Erro JARVIS AI:", error);
+
+    addMessage(
+      "jarvis",
+      "Não consegui conectar ao cérebro de IA. " +
+      "Verifique a conexão com o Cloudflare."
+    );
+
+  } finally {
+    statusText.textContent = "JARVIS online.";
+  }
+}
     const response = await fetch(JARVIS_API, {
       method: "POST",
       headers: {
