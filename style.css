@@ -1,1 +1,365 @@
 
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg: #030914;
+  --panel: rgba(7, 24, 42, 0.88);
+  --cyan: #00e5ff;
+  --blue: #007bff;
+  --text: #e8faff;
+  --muted: #8ba9bb;
+  --border: rgba(0, 229, 255, 0.25);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      ellipse at 50% 20%,
+      #102b46 0%,
+      transparent 55%
+    ),
+    var(--bg);
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.container {
+  width: min(100%, 1100px);
+  margin: auto;
+  padding: 20px 15px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--cyan);
+  letter-spacing: 2px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: #a7ffce;
+  letter-spacing: 1px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00ff99;
+  box-shadow: 0 0 12px #00ff99;
+  animation: blink 2s infinite;
+}
+
+.hero {
+  text-align: center;
+  padding: 35px 0 28px;
+}
+
+.subtitle {
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: var(--muted);
+}
+
+.reactor {
+  width: 230px;
+  height: 230px;
+  margin: 30px auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid transparent;
+}
+
+.ring-1 {
+  width: 100%;
+  height: 100%;
+  border-top-color: var(--cyan);
+  border-bottom-color: var(--cyan);
+  box-shadow: 0 0 20px #00e5ff33;
+  animation: spin 9s linear infinite;
+}
+
+.ring-2 {
+  width: 80%;
+  height: 80%;
+  border-left-color: var(--blue);
+  border-right-color: var(--cyan);
+  animation: spinReverse 6s linear infinite;
+}
+
+.ring-3 {
+  width: 60%;
+  height: 60%;
+  border: 2px dashed #00e5ff77;
+  animation: spin 12s linear infinite;
+}
+
+.reactor-core {
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    #0c6e91,
+    #051525 75%
+  );
+  border: 2px solid var(--cyan);
+  box-shadow:
+    0 0 25px #00e5ff88,
+    inset 0 0 25px #00e5ff44;
+  color: white;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 44px;
+  font-weight: 800;
+  text-shadow: 0 0 15px var(--cyan);
+  animation: pulse 3s ease-in-out infinite;
+}
+
+h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(30px, 8vw, 48px);
+  letter-spacing: 6px;
+  color: var(--cyan);
+  text-shadow: 0 0 25px #00e5ff55;
+}
+
+#assistantStatus {
+  margin-top: 15px;
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.panel,
+.chat-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 8px 30px #0005;
+}
+
+h2 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  color: var(--cyan);
+  letter-spacing: 1px;
+  margin-bottom: 18px;
+}
+
+.panel p {
+  font-size: 17px;
+  line-height: 1.9;
+  color: var(--muted);
+}
+
+.panel span {
+  color: var(--text);
+}
+
+.commands {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+button {
+  cursor: pointer;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  transition: 0.2s;
+  touch-action: manipulation;
+}
+
+.commands button,
+.voice-controls button,
+#sendButton {
+  padding: 13px 10px;
+  color: var(--cyan);
+  background: #071c30;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+button:hover {
+  border-color: var(--cyan);
+  box-shadow: 0 0 15px #00e5ff33;
+}
+
+.messages {
+  min-height: 180px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 12px;
+  border: 1px solid #12344d;
+  background: #020b15;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.message {
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  font-size: 17px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.message.jarvis {
+  background: #08263a;
+  border-left: 3px solid var(--cyan);
+  color: #bdf8ff;
+}
+
+.message.user {
+  background: #112039;
+  border-right: 3px solid var(--blue);
+  text-align: right;
+}
+
+.input-area {
+  display: flex;
+  gap: 10px;
+}
+
+#commandInput {
+  flex: 1;
+  min-width: 0;
+  background: #020c17;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: white;
+  padding: 13px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 17px;
+  outline: none;
+}
+
+#commandInput:focus {
+  border-color: var(--cyan);
+}
+
+#sendButton {
+  padding: 12px 18px;
+}
+
+.voice-controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.voice-controls button {
+  flex: 1;
+}
+
+#voiceButton.listening {
+  color: #ff7272;
+  border-color: #ff4545;
+  box-shadow: 0 0 18px #ff454544;
+}
+
+footer {
+  text-align: center;
+  padding: 30px 0 15px;
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--muted);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spinReverse {
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px #00e5ff66;
+  }
+  50% {
+    box-shadow: 0 0 40px #00e5ffcc;
+  }
+}
+
+@keyframes blink {
+  50% { opacity: 0.35; }
+}
+
+@media (max-width: 650px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .reactor {
+    width: 200px;
+    height: 200px;
+  }
+
+  .panel,
+  .chat-panel {
+    padding: 15px;
+  }
+
+  .voice-controls {
+    flex-direction: column;
+  }
+
+  .subtitle {
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
