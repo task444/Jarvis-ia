@@ -4,6 +4,42 @@
  * Assistente virtual para Android
  * Voz, texto e comandos básicos
  */
+
+const JARVIS_API =
+  "https://jarvis-ai-backend.juliocls20101.workers.dev";
+
+async function perguntarIA(mensagem) {
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(), 25000
+  );
+
+  try {
+    const response = await fetch(JARVIS_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ mensagem }),
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      throw new Error("HTTP " + response.status);
+    }
+
+    const data = await response.json();
+
+    if (typeof data.resposta !== "string") {
+      throw new Error("Resposta inválida");
+    }
+
+    return data.resposta;
+
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 alert("JARVIS: JavaScript carregado com sucesso!");
 const chat = document.getElementById("chatMessages");
 const input = document.getElementById("commandInput");
@@ -300,8 +336,7 @@ if (SpeechRecognition) {
 
 // Inicialização
 document.getElementById("aiStatus").textContent =
-  "Aguardando integração";
-
+  "Cloudflare configurado";
 statusText.textContent = "JARVIS online.";
 
 console.log("JARVIS 1.0 inicializado.");
