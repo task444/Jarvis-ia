@@ -4,7 +4,7 @@
  * Assistente virtual para Android
  * Voz, texto e comandos básicos
  */
-
+alert("JARVIS: JavaScript carregado com sucesso!");
 const chat = document.getElementById("chatMessages");
 const input = document.getElementById("commandInput");
 const form = document.getElementById("commandForm");
