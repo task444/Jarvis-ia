@@ -1,1 +1,128 @@
 
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#050d18">
+  <title>JARVIS | Assistente Inteligente</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="container">
+
+    <header class="topbar">
+      <div class="logo">J.A.R.V.I.S</div>
+      <div class="status">
+        <span class="status-dot"></span>
+        SISTEMA ONLINE
+      </div>
+    </header>
+
+    <main>
+
+      <section class="hero">
+        <p class="subtitle">ASSISTENTE VIRTUAL INTELIGENTE</p>
+
+        <div class="reactor">
+          <div class="ring ring-1"></div>
+          <div class="ring ring-2"></div>
+          <div class="ring ring-3"></div>
+          <div class="reactor-core">J</div>
+        </div>
+
+        <h1>JARVIS</h1>
+        <p id="assistantStatus">
+          Aguardando seus comandos...
+        </p>
+      </section>
+
+      <section class="dashboard">
+
+        <div class="panel">
+          <h2>STATUS DO SISTEMA</h2>
+          <p>Inteligência artificial:
+            <span id="aiStatus">Não conectada</span>
+          </p>
+          <p>Reconhecimento de voz:
+            <span id="voiceStatus">Verificando...</span>
+          </p>
+          <p>Plataforma: Android / Web</p>
+        </div>
+
+        <div class="panel">
+          <h2>COMANDOS RÁPIDOS</h2>
+
+          <div class="commands">
+            <button onclick="quickCommand('Que horas são?')">
+              HORÁRIO
+            </button>
+
+            <button onclick="quickCommand('Qual é a data de hoje?')">
+              DATA
+            </button>
+
+            <button onclick="quickCommand('Abrir Google')">
+              GOOGLE
+            </button>
+
+            <button onclick="quickCommand('Ajuda')">
+              AJUDA
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <section class="chat-panel">
+
+        <h2>TERMINAL DE COMUNICAÇÃO</h2>
+
+        <div id="chatMessages" class="messages">
+          <div class="message jarvis">
+            JARVIS: Sistema inicializado.
+            Aguardando instruções.
+          </div>
+        </div>
+
+        <form id="commandForm" class="input-area">
+          <input
+            type="text"
+            id="commandInput"
+            placeholder="Digite um comando..."
+            autocomplete="off"
+            aria-label="Digite um comando"
+          >
+
+          <button type="submit" id="sendButton">
+            ENVIAR
+          </button>
+        </form>
+
+        <div class="voice-controls">
+          <button id="voiceButton" type="button">
+            🎙 ATIVAR MICROFONE
+          </button>
+
+          <button id="soundButton" type="button">
+            🔊 VOZ ATIVADA
+          </button>
+        </div>
+
+      </section>
+
+    </main>
+
+    <footer>
+      JARVIS PROJECT • VERSÃO 1.0
+      <br>
+      Desenvolvido para Android
+    </footer>
+
+  </div>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
