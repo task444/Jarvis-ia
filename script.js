@@ -1,100 +1,172 @@
 
 /*
- * JARVIS 2.1
+ * JARVIS 2.2
  * Assistente virtual para Android
- * IA Cloudflare + memoria + voz + comandos
+ * Cloudflare Workers AI + voz + memoria + comandos
  */
+
+"use strict";
+
+// ========================================
+// 1. CONFIGURACAO
+// ========================================
 
 const JARVIS_API =
   "https://jarvis-ai-backend.juliocls20101.workers.dev";
 
-// Elementos da interface
+const MAX_HISTORICO = 10;
+const TEMPO_LIMITE = 30000;
+
+// ========================================
+// 2. ELEMENTOS DA INTERFACE
+// ========================================
+
 const chat = document.getElementById("chatMessages");
 const input = document.getElementById("commandInput");
 const form = document.getElementById("commandForm");
+
 const voiceButton = document.getElementById("voiceButton");
 const soundButton = document.getElementById("soundButton");
+
 const statusText = document.getElementById("assistantStatus");
 const voiceStatus = document.getElementById("voiceStatus");
 const aiStatus = document.getElementById("aiStatus");
 
-// Configuracoes
+// ========================================
+// 3. ESTADO DO JARVIS
+// ========================================
+
 let soundEnabled = true;
 let listening = false;
 let recognition = null;
 let processing = false;
 
-// Memoria temporaria das ultimas 5 conversas
 const memoriaJarvis = [];
 
-// Adicionar mensagens ao chat
-function addMessage(sender, message) {
-  const div = document.createElement("div");
+// ========================================
+// 4. UTILIDADES
+// ========================================
 
-  div.className = "message " + sender;
-  div.textContent =
-    (sender === "jarvis" ? "JARVIS: " : "VOCÊ: ") +
-    message;
-
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
+function setText(element, value) {
+  if (element) {
+    element.textContent = value;
+  }
 }
 
-// Respostas por voz
-function speak(text) {
-  if (
-    !soundEnabled ||
-    !("speechSynthesis" in window)
-  ) {
-    return;
-  }
-
-  speechSynthesis.cancel();
-
-  const utterance =
-    new SpeechSynthesisUtterance(text);
-
-  utterance.lang = "pt-BR";
-  utterance.rate = 0.95;
-  utterance.pitch = 0.9;
-  utterance.volume = 1;
-
-  const voices = speechSynthesis.getVoices();
-
-  const brazilianVoice = voices.find(
-    voice => voice.lang.toLowerCase() === "pt-br"
-  );
-
-  if (brazilianVoice) {
-    utterance.voice = brazilianVoice;
-  }
-
-  speechSynthesis.speak(utterance);
-}
-
-// Normalizar texto
 function normalize(text) {
-  return text
+  return String(text || "")
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .trim();
 }
 
-// Comandos locais
+function addMessage(sender, message) {
+  if (!chat) return;
+
+  const div = document.createElement("div");
+
+  div.className = "message " + sender;
+
+  const nome = sender === "jarvis"
+    ? "JARVIS: "
+    : "VOCÊ: ";
+
+  div.textContent = nome + String(message);
+
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function setProcessing(value) {
+  processing = value;
+
+  setText(
+    statusText,
+    value
+      ? "Processando sua solicitação..."
+      : "Aguardando seus comandos..."
+  );
+
+  if (input) {
+    input.disabled = value;
+  }
+}
+
+// ========================================
+// 5. VOZ DO JARVIS
+// ========================================
+
+function speak(text) {
+  if (!soundEnabled) return;
+
+  if (!("speechSynthesis" in window)) {
+    setText(
+      voiceStatus,
+      "Voz não disponível neste navegador"
+    );
+    return;
+  }
+
+  try {
+    window.speechSynthesis.cancel();
+
+    const utterance =
+      new SpeechSynthesisUtterance(String(text));
+
+    utterance.lang = "pt-BR";
+    utterance.rate = 0.95;
+    utterance.pitch = 0.9;
+    utterance.volume = 1;
+
+    const voices =
+      window.speechSynthesis.getVoices();
+
+    const brazilianVoice = voices.find(
+      voice =>
+        voice.lang &&
+        voice.lang.toLowerCase().startsWith("pt-br")
+    );
+
+    if (brazilianVoice) {
+      utterance.voice = brazilianVoice;
+    }
+
+    utterance.onstart = () => {
+      setText(voiceStatus, "JARVIS falando");
+    };
+
+    utterance.onend = () => {
+      setText(voiceStatus, "Voz disponível");
+    };
+
+    utterance.onerror = () => {
+      setText(voiceStatus, "Falha na reprodução de voz");
+    };
+
+    window.speechSynthesis.speak(utterance);
+
+  } catch (error) {
+    console.error("Erro de voz:", error);
+  }
+}
+
+// ========================================
+// 6. COMANDOS LOCAIS
+// ========================================
+
 function getResponse(command) {
   const text = normalize(command);
-  const now = new Date();
 
   if (
+    text === "horas" ||
     text.includes("que horas") ||
-    text.includes("horario") ||
-    text === "hora"
+    text.includes("hora atual")
   ) {
     return {
       message:
         "Agora são " +
-        now.toLocaleTimeString("pt-BR", {
+        new Date().toLocaleTimeString("pt-BR", {
           hour: "2-digit",
           minute: "2-digit"
         }) +
@@ -103,14 +175,14 @@ function getResponse(command) {
   }
 
   if (
+    text === "data" ||
     text.includes("que dia e hoje") ||
-    text.includes("qual a data") ||
-    text === "data"
+    text.includes("data de hoje")
   ) {
     return {
       message:
         "Hoje é " +
-        now.toLocaleDateString("pt-BR", {
+        new Date().toLocaleDateString("pt-BR", {
           weekday: "long",
           day: "numeric",
           month: "long",
@@ -120,35 +192,33 @@ function getResponse(command) {
     };
   }
 
-  if (text.includes("abrir google")) {
+  if (
+    text === "abrir google" ||
+    text === "abra o google"
+  ) {
     return {
-      message: "Abrindo o Google.",
+      message: "Abrindo Google.",
       url: "https://www.google.com"
     };
   }
 
-  if (text.includes("abrir youtube")) {
+  if (
+    text === "abrir youtube" ||
+    text === "abra o youtube"
+  ) {
     return {
-      message: "Abrindo o YouTube.",
+      message: "Abrindo YouTube.",
       url: "https://www.youtube.com"
     };
   }
 
-  if (text.includes("abrir github")) {
-    return {
-      message: "Abrindo o GitHub.",
-      url: "https://github.com"
-    };
-  }
-
   if (
-    text.includes("quem e voce") ||
-    text.includes("se apresente")
+    text === "abrir github" ||
+    text === "abra o github"
   ) {
     return {
-      message:
-        "Eu sou JARVIS, seu assistente virtual " +
-        "pessoal com inteligência artificial."
+      message: "Abrindo GitHub.",
+      url: "https://github.com"
     };
   }
 
@@ -171,82 +241,130 @@ function getResponse(command) {
   ) {
     return {
       message:
-        "Posso responder perguntas usando IA, " +
-        "informar horas e datas, abrir sites " +
-        "e conversar com você."
+        "Posso responder perguntas usando inteligência " +
+        "artificial, conversar com você, informar horas " +
+        "e datas e abrir Google, YouTube ou GitHub."
     };
   }
 
-  if (text.includes("parar de falar")) {
+  if (
+    text.includes("parar de falar") ||
+    text.includes("pare de falar") ||
+    text === "silencio"
+  ) {
     return {
       message: "Áudio interrompido.",
       stopSpeech: true
     };
   }
 
-  // Retorna null para enviar a pergunta a IA
   return null;
 }
 
-// Consultar inteligencia artificial
+// ========================================
+// 7. CONEXAO COM A INTELIGENCIA ARTIFICIAL
+// ========================================
+
 async function perguntarIA(mensagem) {
   const controller = new AbortController();
 
   const timeout = setTimeout(() => {
     controller.abort();
-  }, 25000);
+  }, TEMPO_LIMITE);
 
   try {
     const response = await fetch(JARVIS_API, {
       method: "POST",
+
+      mode: "cors",
+
+      cache: "no-store",
+
       headers: {
         "Content-Type": "application/json"
       },
+
       body: JSON.stringify({
         mensagem: mensagem,
-        historico: memoriaJarvis.slice(-10)
+        historico: memoriaJarvis.slice(-MAX_HISTORICO)
       }),
+
       signal: controller.signal
     });
 
-    if (!response.ok) {
+    const raw = await response.text();
+
+    let data;
+
+    try {
+      data = JSON.parse(raw);
+    } catch {
       throw new Error(
-        "Erro HTTP: " + response.status
+        "O servidor retornou uma resposta que não é JSON."
       );
     }
 
-    const data = await response.json();
+    if (!response.ok) {
+      const detalhe =
+        data.erro ||
+        data.error ||
+        data.message ||
+        "Erro desconhecido";
+
+      throw new Error(
+        "HTTP " + response.status + ": " + detalhe
+      );
+    }
 
     if (
+      !data ||
       typeof data.resposta !== "string" ||
       !data.resposta.trim()
     ) {
-      throw new Error("Resposta invalida da IA");
+      throw new Error(
+        "O servidor respondeu, mas não enviou " +
+        "uma resposta válida da IA."
+      );
     }
 
-    return data.resposta;
+    return data.resposta.trim();
+
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw new Error(
+        "Tempo limite excedido. O servidor demorou " +
+        "mais de 30 segundos para responder."
+      );
+    }
+
+    if (error instanceof TypeError) {
+      throw new Error(
+        "Falha de rede ou bloqueio CORS. " +
+        "Verifique se o Cloudflare permite " +
+        "requisições de https://task444.github.io."
+      );
+    }
+
+    throw error;
+
   } finally {
     clearTimeout(timeout);
   }
 }
 
-// Processar comandos
+// ========================================
+// 8. PROCESSAR COMANDOS
+// ========================================
+
 async function processCommand(command) {
   const cleaned = String(command || "").trim();
 
   if (!cleaned) return;
+  if (processing) return;
 
-  if (processing) {
-    addMessage(
-      "jarvis",
-      "Aguarde, estou processando sua pergunta."
-    );
-    return;
-  }
-
-  processing = true;
   addMessage("user", cleaned);
-  statusText.textContent = "JARVIS pensando...";
+
+  setProcessing(true);
 
   try {
     const local = getResponse(cleaned);
@@ -256,7 +374,7 @@ async function processCommand(command) {
 
       if (local.stopSpeech) {
         if ("speechSynthesis" in window) {
-          speechSynthesis.cancel();
+          window.speechSynthesis.cancel();
         }
       } else {
         speak(local.message);
@@ -270,21 +388,23 @@ async function processCommand(command) {
         link.rel = "noopener noreferrer";
         link.textContent = "Abrir site";
 
-        chat.appendChild(link);
-        chat.scrollTop = chat.scrollHeight;
+        if (chat) {
+          chat.appendChild(link);
+          chat.scrollTop = chat.scrollHeight;
+        }
       }
 
       return;
     }
 
-    // Enviar pergunta para a IA
+    setText(aiStatus, "IA processando...");
+
     const resposta = await perguntarIA(cleaned);
 
-    // Salvar conversa na memoria temporaria
     memoriaJarvis.push(
       {
         role: "user",
-        content: cleaned
+        content: cleaned.slice(0, 500)
       },
       {
         role: "assistant",
@@ -292,66 +412,71 @@ async function processCommand(command) {
       }
     );
 
-    // Manter somente as ultimas 10 mensagens
-    if (memoriaJarvis.length > 10) {
+    if (memoriaJarvis.length > MAX_HISTORICO) {
       memoriaJarvis.splice(
         0,
-        memoriaJarvis.length - 10
+        memoriaJarvis.length - MAX_HISTORICO
       );
     }
 
     addMessage("jarvis", resposta);
+
+    setText(aiStatus, "IA conectada");
+
     speak(resposta);
 
   } catch (error) {
-  console.error("Erro JARVIS:", error);
+    console.error("Erro JARVIS:", error);
 
-  addMessage(
-    "jarvis",
-    "Erro detectado: " + error.message
-  );
-    conexão."
+    const mensagemErro =
+      error && error.message
+        ? error.message
+        : "Erro desconhecido.";
 
+    addMessage(
+      "jarvis",
+      "Erro detectado: " + mensagemErro
+    );
+
+    setText(aiStatus, "Erro na IA");
 
   } finally {
-    processing = false;
-    statusText.textContent =
-      "Aguardando seus comandos...";
+    setProcessing(false);
   }
 }
 
-// Enviar mensagem digitada
-form.addEventListener("submit", event => {
-  event.preventDefault();
+// ========================================
+// 9. ENVIO DE MENSAGENS
+// ========================================
 
-  const command = input.value;
-  input.value = "";
+if (form) {
+  form.addEventListener("submit", event => {
+    event.preventDefault();
 
-  processCommand(command);
-});
+    if (!input) return;
 
-// Comandos rapidos do HTML
-function quickCommand(command) {
-  processCommand(command);
+    const command = input.value.trim();
+
+    if (!command || processing) return;
+
+    input.value = "";
+
+    processCommand(command);
+  });
 }
 
-// Ativar e desativar voz
-soundButton.addEventListener("click", () => {
-  soundEnabled = !soundEnabled;
+// ========================================
+// 10. COMANDOS RAPIDOS
+// ========================================
 
-  if (
-    !soundEnabled &&
-    "speechSynthesis" in window
-  ) {
-    speechSynthesis.cancel();
-  }
+window.quickCommand = function(command) {
+  processCommand(command);
+};
 
-  soundButton.textContent = soundEnabled
-    ? "🔊 VOZ ATIVADA"
-    : "🔇 VOZ DESATIVADA";
-});
+// ========================================
+// 11. MICROFONE
+// ========================================
 
-// Reconhecimento de voz
 const SpeechRecognition =
   window.SpeechRecognition ||
   window.webkitSpeechRecognition;
@@ -363,69 +488,124 @@ if (SpeechRecognition) {
   recognition.continuous = false;
   recognition.interimResults = false;
 
-  voiceStatus.textContent = "Disponível";
-
   recognition.onstart = () => {
     listening = true;
 
-    voiceButton.classList.add("listening");
-    voiceButton.textContent = "🔴 OUVINDO...";
+    setText(voiceStatus, "Ouvindo...");
 
-    statusText.textContent = "Estou ouvindo...";
+    if (voiceButton) {
+      voiceButton.classList.add("active");
+    }
   };
 
   recognition.onresult = event => {
     const transcript =
       event.results[0][0].transcript;
 
-    input.value = transcript;
+    if (input) {
+      input.value = transcript;
+    }
+
     processCommand(transcript);
-    input.value = "";
   };
 
   recognition.onerror = event => {
-    statusText.textContent =
-      "Erro no microfone: " + event.error;
+    console.error(
+      "Erro no reconhecimento de voz:",
+      event.error
+    );
+
+    setText(
+      voiceStatus,
+      "Erro no microfone: " + event.error
+    );
   };
 
   recognition.onend = () => {
     listening = false;
 
-    voiceButton.classList.remove("listening");
-    voiceButton.textContent =
-      "🎙 ATIVAR MICROFONE";
-
-    if (
-      statusText.textContent === "Estou ouvindo..."
-    ) {
-      statusText.textContent =
-        "Aguardando seus comandos...";
+    if (voiceButton) {
+      voiceButton.classList.remove("active");
     }
+
+    setText(voiceStatus, "Microfone disponível");
   };
 
-  voiceButton.addEventListener("click", () => {
-    if (listening) {
-      recognition.stop();
-      return;
-    }
+  if (voiceButton) {
+    voiceButton.addEventListener("click", () => {
+      try {
+        if (listening) {
+          recognition.stop();
+        } else if (!processing) {
+          if ("speechSynthesis" in window) {
+            window.speechSynthesis.cancel();
+          }
 
-    try {
-      recognition.start();
-    } catch (error) {
-      statusText.textContent =
-        "Não foi possível iniciar o microfone.";
-    }
-  });
+          recognition.start();
+        }
+      } catch (error) {
+        console.error("Erro no microfone:", error);
+      }
+    });
+  }
 
 } else {
-  voiceStatus.textContent = "Não suportado";
-  voiceButton.disabled = true;
-  voiceButton.textContent =
-    "MICROFONE INDISPONÍVEL";
+  setText(
+    voiceStatus,
+    "Reconhecimento de voz indisponível"
+  );
+
+  if (voiceButton) {
+    voiceButton.disabled = true;
+  }
 }
 
-// Inicializacao
-aiStatus.textContent = "Cloudflare configurado";
-statusText.textContent = "JARVIS online.";
+// ========================================
+// 12. ATIVAR E DESATIVAR SOM
+// ========================================
 
-console.log("JARVIS 2.1 inicializado.");
+if (soundButton) {
+  soundButton.addEventListener("click", () => {
+    soundEnabled = !soundEnabled;
+
+    if (!soundEnabled) {
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+
+      setText(voiceStatus, "Som desativado");
+
+    } else {
+      setText(voiceStatus, "Som ativado");
+      speak("Sistema de voz ativado.");
+    }
+  });
+}
+
+// ========================================
+// 13. INICIALIZACAO
+// ========================================
+
+function iniciarJarvis() {
+  setText(
+    statusText,
+    "Aguardando seus comandos..."
+  );
+
+  setText(
+    aiStatus,
+    "IA pronta para teste"
+  );
+
+  if (SpeechRecognition) {
+    setText(
+      voiceStatus,
+      "Microfone disponível"
+    );
+  }
+
+  console.log("JARVIS 2.2 inicializado.");
+  console.log("API configurada:", JARVIS_API);
+}
+
+iniciarJarvis();
