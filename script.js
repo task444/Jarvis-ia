@@ -304,12 +304,12 @@ async function processCommand(command) {
     speak(resposta);
 
   } catch (error) {
-    console.error("Erro JARVIS:", error);
+  console.error("Erro JARVIS:", error);
 
-    addMessage(
-      "jarvis",
-      "Não consegui acessar minha inteligência " +
-      "artificial. Verifique a conexão."
+  addMessage(
+    "jarvis",
+    "Erro detectado: " + error.message
+  );conexão."
     );
 
   } finally {
