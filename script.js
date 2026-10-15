@@ -309,8 +309,9 @@ async function processCommand(command) {
   addMessage(
     "jarvis",
     "Erro detectado: " + error.message
-  );conexão."
-    );
+  );
+    conexão."
+
 
   } finally {
     processing = false;
