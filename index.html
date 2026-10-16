@@ -127,5 +127,41 @@
   alert("TESTE JARVIS: HTML executando JavaScript!");
 </script>
 <script src="./script.js?v=28"></script>
+  
+<script>
+async function testarConexaoJarvis() {
+  try {
+    const resposta = await fetch(
+      "https://jarvis-ai-backend.juliocls20101.workers.dev",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          mensagem: "Quanto é 2 mais 2?",
+          historico: []
+        })
+      }
+    );
+
+    const texto = await resposta.text();
+
+    alert(
+      "HTTP " + resposta.status +
+      "\nResposta: " + texto
+    );
+  } catch (erro) {
+    alert(
+      "Falha no navegador:\n" +
+      erro.name + ": " + erro.message
+    );
+  }
+}
+</script>
+
+<button onclick="testarConexaoJarvis()">
+  TESTAR CONEXÃO COM A IA
+</button>
 </body>
 </html>
