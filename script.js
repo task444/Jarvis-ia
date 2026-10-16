@@ -97,47 +97,59 @@ function setProcessing(value) {
 // 5. VOZ DO JARVIS
 // ========================================
 
+
 function speak(text) {
-  
-/*
- JARVIS 3.0 - VOZ CLASSICA
- Voz profunda, calma e sofisticada
-*/
+  if (!soundEnabled) return;
 
-let jarvisVoice = null;
-
-function selecionarVozJarvis() {
   if (!("speechSynthesis" in window)) {
-    return null;
+    console.warn("Voz não disponível.");
+    return;
   }
 
-  const vozes = speechSynthesis.getVoices();
+  try {
+    speechSynthesis.cancel();
 
-  const portuguesBR = vozes.filter(voz =>
-    voz.lang.toLowerCase().startsWith("pt-br")
-  );
+    const utterance =
+      new SpeechSynthesisUtterance(String(text));
 
-  const portugues = vozes.filter(voz =>
-    voz.lang.toLowerCase().startsWith("pt")
-  );
+    utterance.lang = "pt-BR";
+    utterance.rate = 0.88;
+    utterance.pitch = 0.75;
+    utterance.volume = 1;
 
-  const disponiveis = portuguesBR.length
-    ? portuguesBR
-    : portugues;
+    const voices = speechSynthesis.getVoices();
 
-  const masculina = disponiveis.find(voz =>
-    /male|masculin|masculino/i.test(voz.name) &&
-    !/female|feminina|feminino/i.test(voz.name)
-  );
+    const brazilianVoices = voices.filter(
+      voice => voice.lang.toLowerCase() === "pt-br"
+    );
 
-  jarvisVoice = masculina || disponiveis[0] || null;
+    const maleVoice = brazilianVoices.find(
+      voice =>
+        /male|masculino/i.test(voice.name) &&
+        !/female|feminino/i.test(voice.name)
+    );
 
-  console.log(
-    "JARVIS - Voz selecionada:",
-    jarvisVoice ? jarvisVoice.name : "Padrão do Android"
-  );
+    const selectedVoice =
+      maleVoice || brazilianVoices[0];
 
-  return jarvisVoice;
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+
+    utterance.onerror = event => {
+      if (
+        event.error !== "canceled" &&
+        event.error !== "interrupted"
+      ) {
+        console.error("Erro na voz:", event.error);
+      }
+    };
+
+    speechSynthesis.speak(utterance);
+
+  } catch (error) {
+    console.error("Erro ao falar:", error);
+  }
 }
 
 function speak(text) {
