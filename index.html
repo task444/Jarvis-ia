@@ -1,167 +1,412 @@
 
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
   <meta name="theme-color" content="#050d18">
+
+  <meta
+    name="description"
+    content="JARVIS - Assistente virtual inteligente com voz, comandos e inteligência artificial."
+  >
+
   <title>JARVIS | Assistente Inteligente</title>
-  <link rel="stylesheet" href="style.css">
+
+  <link rel="stylesheet" href="./style.css?v=33">
 </head>
+
 <body>
 
   <div class="container">
 
+    <!-- CABECALHO -->
+
     <header class="topbar">
-      <div class="logo">J.A.R.V.I.S</div>
+
+      <div class="logo">
+        J.A.R.V.I.S
+      </div>
+
       <div class="status">
         <span class="status-dot"></span>
         SISTEMA ONLINE
       </div>
+
     </header>
 
     <main>
 
-      <section class="hero">
-        <p class="subtitle">ASSISTENTE VIRTUAL INTELIGENTE</p>
+      <!-- REATOR CENTRAL -->
 
-        <div class="reactor">
+      <section class="hero">
+
+        <p class="subtitle">
+          ASSISTENTE VIRTUAL INTELIGENTE
+        </p>
+
+        <div class="reactor" aria-hidden="true">
+
           <div class="ring ring-1"></div>
           <div class="ring ring-2"></div>
           <div class="ring ring-3"></div>
-          <div class="reactor-core">J</div>
+
+          <div class="reactor-core">
+            J
+          </div>
+
         </div>
 
         <h1>JARVIS</h1>
-        <p id="assistantStatus">
-          Aguardando seus comandos...
+
+        <p id="assistantStatus" aria-live="polite">
+          Inicializando sistema...
         </p>
+
       </section>
+
+      <!-- PAINEIS DO SISTEMA -->
 
       <section class="dashboard">
 
         <div class="panel">
+
           <h2>STATUS DO SISTEMA</h2>
-          <p>Inteligência artificial:
-            <span id="aiStatus">Não conectada</span>
+
+          <p>
+            Inteligência artificial:
+            <span id="aiStatus">
+              Aguardando teste
+            </span>
           </p>
-          <p>Reconhecimento de voz:
-            <span id="voiceStatus">Verificando...</span>
+
+          <p>
+            Reconhecimento de voz:
+            <span id="voiceStatus">
+              Verificando...
+            </span>
           </p>
-          <p>Plataforma: Android / Web</p>
+
+          <p>
+            Plataforma: Android / Web
+          </p>
+
         </div>
 
+        <!-- COMANDOS RAPIDOS -->
+
         <div class="panel">
+
           <h2>COMANDOS RÁPIDOS</h2>
 
           <div class="commands">
-            <button onclick="quickCommand('Que horas são?')">
+
+            <button
+              type="button"
+              onclick="quickCommand('Que horas são?')"
+            >
               HORÁRIO
             </button>
 
-            <button onclick="quickCommand('Qual é a data de hoje?')">
+            <button
+              type="button"
+              onclick="quickCommand('Qual é a data de hoje?')"
+            >
               DATA
             </button>
 
-            <button onclick="quickCommand('Abrir Google')">
+            <button
+              type="button"
+              onclick="quickCommand('Abrir Google')"
+            >
               GOOGLE
             </button>
 
-            <button onclick="quickCommand('Ajuda')">
+            <button
+              type="button"
+              onclick="quickCommand('Ajuda')"
+            >
               AJUDA
             </button>
+
           </div>
+
         </div>
 
       </section>
+
+      <!-- TERMINAL DE COMUNICACAO -->
 
       <section class="chat-panel">
 
         <h2>TERMINAL DE COMUNICAÇÃO</h2>
 
-        <div id="chatMessages" class="messages">
+        <div
+          id="chatMessages"
+          class="messages"
+          role="log"
+          aria-live="polite"
+          aria-label="Conversa com JARVIS"
+        >
+
           <div class="message jarvis">
             JARVIS: Sistema inicializado.
             Aguardando instruções.
           </div>
+
         </div>
 
-        <form id="commandForm" class="input-area">
+        <!-- ENVIO DE MENSAGENS -->
+
+        <form
+          id="commandForm"
+          class="input-area"
+        >
+
           <input
             type="text"
             id="commandInput"
+            name="command"
             placeholder="Digite um comando..."
             autocomplete="off"
-            aria-label="Digite um comando"
+            aria-label="Digite um comando para JARVIS"
+            maxlength="500"
+            required
           >
 
-          <button type="submit" id="sendButton">
+          <button
+            type="submit"
+            id="sendButton"
+          >
             ENVIAR
           </button>
+
         </form>
 
+        <!-- CONTROLES DE VOZ -->
+
         <div class="voice-controls">
-          <button id="voiceButton" type="button">
+
+          <button
+            id="voiceButton"
+            type="button"
+          >
             🎙 ATIVAR MICROFONE
           </button>
 
-          <button id="soundButton" type="button">
+          <button
+            id="soundButton"
+            type="button"
+          >
             🔊 VOZ ATIVADA
           </button>
+
         </div>
+
+      </section>
+
+      <!-- DIAGNOSTICO DE CONEXAO -->
+
+      <section
+        class="chat-panel"
+        aria-labelledby="diagnosticTitle"
+        style="margin-top: 20px;"
+      >
+
+        <h2 id="diagnosticTitle">
+          DIAGNÓSTICO DA INTELIGÊNCIA ARTIFICIAL
+        </h2>
+
+        <p
+          style="
+            color: #8ba9bb;
+            margin-bottom: 14px;
+            line-height: 1.5;
+          "
+        >
+          Verifique a comunicação entre o navegador
+          e o servidor Cloudflare.
+        </p>
+
+        <button
+          id="testConnectionButton"
+          type="button"
+          style="
+            width: 100%;
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid #00e5ff;
+            background: #071c30;
+            color: #00e5ff;
+          "
+        >
+          TESTAR CONEXÃO COM A IA
+        </button>
+
+        <pre
+          id="connectionResult"
+          aria-live="polite"
+          style="
+            margin-top: 14px;
+            padding: 12px;
+            min-height: 65px;
+            background: #020b15;
+            border: 1px solid #12344d;
+            border-radius: 8px;
+            color: #bdf8ff;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            font-family: monospace;
+            font-size: 12px;
+          "
+        >Aguardando teste...</pre>
 
       </section>
 
     </main>
 
+    <!-- RODAPE -->
+
     <footer>
-      JARVIS PROJECT • VERSÃO 1.0
+      JARVIS PROJECT • VERSÃO 2.3
       <br>
       Desenvolvido para Android
     </footer>
 
   </div>
 
+  <!-- SCRIPT PRINCIPAL: CARREGAR UMA VEZ -->
+
+  <script src="./script.js?v=33"></script>
+
+  <!-- DIAGNOSTICO INDEPENDENTE -->
+
   <script>
-  <script>
-  alert("TESTE JARVIS: HTML executando JavaScript!");
-</script>
-<script src="./script.js?v=28"></script>
-  
-<script>
-async function testarConexaoJarvis() {
-  try {
-    const resposta = await fetch(
-      "https://jarvis-ai-backend.juliocls20101.workers.dev",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          mensagem: "Quanto é 2 mais 2?",
-          historico: []
-        })
+    "use strict";
+
+    (function () {
+
+      const API =
+        "https://jarvis-ai-backend.juliocls20101.workers.dev";
+
+      const botao =
+        document.getElementById(
+          "testConnectionButton"
+        );
+
+      const resultado =
+        document.getElementById(
+          "connectionResult"
+        );
+
+      if (!botao || !resultado) {
+        return;
       }
-    );
 
-    const texto = await resposta.text();
+      function mostrar(texto) {
+        resultado.textContent = texto;
+      }
 
-    alert(
-      "HTTP " + resposta.status +
-      "\nResposta: " + texto
-    );
-  } catch (erro) {
-    alert(
-      "Falha no navegador:\n" +
-      erro.name + ": " + erro.message
-    );
-  }
-}
-</script>
+      botao.addEventListener(
+        "click",
+        async function () {
 
-<button onclick="testarConexaoJarvis()">
-  TESTAR CONEXÃO COM A IA
-</button>
+          botao.disabled = true;
+
+          mostrar(
+            "Iniciando teste...\n" +
+            "Origem: " + location.origin + "\n" +
+            "Destino: " + API
+          );
+
+          const controller =
+            new AbortController();
+
+          const timer = setTimeout(
+            function () {
+              controller.abort();
+            },
+            15000
+          );
+
+          try {
+
+            const response = await fetch(
+              API,
+              {
+                method: "POST",
+                mode: "cors",
+                cache: "no-store",
+                headers: {
+                  "Content-Type":
+                    "application/json"
+                },
+                body: JSON.stringify({
+                  mensagem:
+                    "Jarvis, quanto é 2 mais 2?",
+                  historico: []
+                }),
+                signal: controller.signal
+              }
+            );
+
+            const texto =
+              await response.text();
+
+            mostrar(
+              "HTTP: " + response.status +
+              "\nOrigem: " + location.origin +
+              "\nResposta:\n" + texto
+            );
+
+          } catch (erro) {
+
+            let diagnostico =
+              erro.name + ": " +
+              erro.message;
+
+            if (erro.name === "AbortError") {
+              diagnostico +=
+                "\nTempo limite de 15 segundos.";
+            }
+
+            if (erro.name === "TypeError") {
+              diagnostico +=
+                "\nPossíveis causas: CORS, " +
+                "bloqueio do navegador ou " +
+                "falha de rede.";
+            }
+
+            mostrar(
+              "TESTE FALHOU\n" +
+              "Origem: " + location.origin +
+              "\nDestino: " + API +
+              "\nErro: " + diagnostico
+            );
+
+            console.error(
+              "Diagnóstico JARVIS:",
+              erro
+            );
+
+          } finally {
+
+            clearTimeout(timer);
+            botao.disabled = false;
+
+          }
+
+        }
+      );
+
+    })();
+  </script>
+
 </body>
 </html>
