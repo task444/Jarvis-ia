@@ -98,14 +98,107 @@ function setProcessing(value) {
 // ========================================
 
 function speak(text) {
+  
+/*
+ JARVIS 3.0 - VOZ CLASSICA
+ Voz profunda, calma e sofisticada
+*/
+
+let jarvisVoice = null;
+
+function selecionarVozJarvis() {
+  if (!("speechSynthesis" in window)) {
+    return null;
+  }
+
+  const vozes = speechSynthesis.getVoices();
+
+  const portuguesBR = vozes.filter(voz =>
+    voz.lang.toLowerCase().startsWith("pt-br")
+  );
+
+  const portugues = vozes.filter(voz =>
+    voz.lang.toLowerCase().startsWith("pt")
+  );
+
+  const disponiveis = portuguesBR.length
+    ? portuguesBR
+    : portugues;
+
+  const masculina = disponiveis.find(voz =>
+    /male|masculin|masculino/i.test(voz.name) &&
+    !/female|feminina|feminino/i.test(voz.name)
+  );
+
+  jarvisVoice = masculina || disponiveis[0] || null;
+
+  console.log(
+    "JARVIS - Voz selecionada:",
+    jarvisVoice ? jarvisVoice.name : "Padrão do Android"
+  );
+
+  return jarvisVoice;
+}
+
+function speak(text) {
   if (!soundEnabled) return;
 
   if (!("speechSynthesis" in window)) {
-    setText(
-      voiceStatus,
-      "Voz não disponível neste navegador"
-    );
+    setText(voiceStatus, "Voz indisponível");
     return;
+  }
+
+  try {
+    speechSynthesis.cancel();
+
+    const utterance =
+      new SpeechSynthesisUtterance(String(text));
+
+    utterance.lang = "pt-BR";
+
+    // Perfil JARVIS Classic
+    utterance.rate = 0.88;
+    utterance.pitch = 0.75;
+    utterance.volume = 1.0;
+
+    const voz = selecionarVozJarvis();
+
+    if (voz) {
+      utterance.voice = voz;
+    }
+
+    utterance.onstart = () => {
+      setText(voiceStatus, "JARVIS falando");
+    };
+
+    utterance.onend = () => {
+      setText(voiceStatus, "Voz disponível");
+    };
+
+    utterance.onerror = evento => {
+      if (evento.error !== "interrupted" &&
+          evento.error !== "canceled") {
+        console.error("Erro de voz:", evento.error);
+        setText(voiceStatus, "Erro de voz");
+      }
+    };
+
+    speechSynthesis.speak(utterance);
+
+  } catch (erro) {
+    console.error("Erro na síntese de voz:", erro);
+    setText(voiceStatus, "Erro de voz");
+  }
+}
+
+if ("speechSynthesis" in window) {
+  speechSynthesis.addEventListener(
+    "voiceschanged",
+    selecionarVozJarvis
+  );
+
+  selecionarVozJarvis();
+}
   }
 
   try {
